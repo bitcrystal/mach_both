@@ -1,8 +1,10 @@
 #ifndef MACH_OVERRIDE_H_OVERRIDES
 #define MACH_OVERRIDE_H_OVERRIDES
+//#ifndef MACH_OVERRIDE_CPLUSPLUS
 #ifdef  __cplusplus
  	extern  "C"     {
 #endif
+//#endif
 	
 #if defined(__ppc__) || defined(__POWERPC__)
 #define TEMPLATE_SIZE ((sizeof(long)*7))
@@ -50,8 +52,11 @@ mach_error_t mach_unoverride_ptr_x86_64(mopc * oldinfo);
 mach_error_t mach_override_ptr_my(mopc * oldinfo);
 mach_error_t mach_unoverride_ptr_my(mopc * oldinfo);
 mach_error_t mach_override_ptr_old_my(void *originalFunctionAddress,const void *overrideFunctionAddress,void **originalFunctionReentryIsland );
+
+//#ifndef MACH_OVERRIDE_CPLUSPLUS
 #ifdef  __cplusplus
  	}
 #endif
+//#endif
 
 #endif

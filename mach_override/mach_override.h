@@ -45,6 +45,10 @@
 #ifndef		_mach_override_
 #define		_mach_override_
 
+#ifndef MACH_OVERRIDE_CPLUSPLUS
+#define MACH_OVERRIDE_CPLUSPLUS
+#endif
+
 #include <sys/types.h>
 #include <mach/error.h>
 
@@ -81,6 +85,7 @@ mach_override_ptr(
     const void *overrideFunctionAddress,
     void **originalFunctionReentryIsland );
 
+//#include "mach_override_overrides.h"
 /************************************************************************************//**
 
 
