@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "../mach_override/mach_override.h"
+#include "../mach_override/mach_override_overrides.h"
 #include "mach-o/dyld.h"
 #include <CoreServices/CoreServices.h>
 

@@ -168,7 +168,7 @@ int _image_headers_in_task(task_t task,
 	#ifdef __LP64__
 		 return _image_headers_from_dyld_info64(task, data, suggested_image_name, count,
                                                                                            headers, shared_cache_slide);
-	#eÃlse
+	#else
 		 return _image_headers_from_dyld_info32(task, data, suggested_image_name, count,
                                                                                            headers, shared_cache_slide);
 	#endif

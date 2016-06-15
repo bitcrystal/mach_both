@@ -370,6 +370,34 @@ typedef struct mopc_
  	        return err;
  	}
 #elif defined(__i386__)
+	mach_error_t mach_unoverride_ptr_i386(mopc * oldinfo )
+        {
+                        if(oldinfo==0)
+                                return err_cannot_override;
+                        if(oldinfo->originalFunctionAddress == 0 || oldinfo->overrideFunctionAddress == 0)
+                                return err_cannot_override;
+                        if(oldinfo->err!=err_none)
+                                return err_cannot_override;
+                        if(oldinfo->instruction_length==0)
+                        {
+                                return err_cannot_override;
+                        }
+			char * px = (char*)oldinfo->originalFunctionAddress;
+			bcopy((char*)&px[0],(char*)&oldinfo->oi.oldInstructions[0],oldinfo->instruction_length);
+                        if( oldinfo->re )
+                        {
+                    		freeBranchIslandEx( oldinfo->re );
+                                oldinfo->re=0;
+                        }
+                	if( oldinfo->es )
+                        {
+                    		freeBranchIslandEx( oldinfo->es );
+                        	oldinfo->es=0;
+                        }
+                        oldinfo->err=err_cannot_override;
+                        return err_none;
+        }
+
  	mach_error_t
  	mach_override_ptr_i386(
  	        mopc * oldinfo )
@@ -491,6 +519,34 @@ typedef struct mopc_
  	    return err;
 	}
 #elif defined(__x86_64__)
+       mach_error_t mach_unoverride_ptr_x86_64(mopc * oldinfo )
+        {
+                        if(oldinfo==0)
+                                return err_cannot_override;
+                        if(oldinfo->originalFunctionAddress == 0 || oldinfo->overrideFunctionAddress == 0)
+                                return err_cannot_override;
+                        if(oldinfo->err!=err_none)
+                                return err_cannot_override;
+                        if(oldinfo->instruction_length==0)
+                        {
+                                return err_cannot_override;
+                        }
+			char * px = (char*)oldinfo->originalFunctionAddress;
+                        bcopy((char*)&px[0],(char*)&oldinfo->oi.oldInstructions[0],oldinfo->instruction_length);
+                        if( oldinfo->re )
+                        {
+                                freeBranchIslandEx( oldinfo->re );
+                                oldinfo->re=0;
+                        }
+                        if( oldinfo->es )
+                        {
+                                freeBranchIslandEx( oldinfo->es );
+                              	oldinfo->es=0;
+                        }
+                        oldinfo->err=err_cannot_override;
+                        return err_none;
+        }
+
  	mach_error_t
  	mach_override_ptr_x86_64(
  	        mopc * oldinfo )
@@ -1442,14 +1498,21 @@ eatKnownInstructions_my(
 	}
 	
 	if (howManyEaten) *howManyEaten = totalEaten;
+	
+
+	if(totalEaten < kOriginalInstructionsSize && allInstructionsKnown)
+	{
+		bcopy((char*)&oldinfo->oi.oldInstructions[0],(char*)&code[0],totalEaten);
+		oldinfo->instruction_length=totalEaten;
+	} else {
+		oldinfo->instruction_length=0;
+	}
 
 	if (originalInstructions) {
 		Boolean enoughSpaceForOriginalInstructions = (totalEaten < kOriginalInstructionsSize);
 		
 		if (enoughSpaceForOriginalInstructions) {
 			memset(originalInstructions, 0x90 /* NOP */, kOriginalInstructionsSize); // fill instructions with NOP
-			bcopy((char*)&oldinfo->oi.oldInstructions[0],(char*)&code[0],totalEaten);
-			oldinfo->instruction_length=totalEaten;
 			bcopy(code, originalInstructions, totalEaten);
 		} else {
 			// printf ("Not enough space in island to store original instructions. Adapt the island definition and kOriginalInstructionsSize\n");
