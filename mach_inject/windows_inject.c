@@ -28,12 +28,13 @@ char get_current_os_seperator()
 char * _string_to_c_string(const char * sstring,unsigned int * sstring_size)
 {
 	static char string[1024];
+	static unsigned int string_size_preserv;
 	memset(string,0,1024);
 	static unsigned int string_size;
 	if(sstring==0)
 		return (char*)0;
 	if(sstring_size==0)
-		sstring_size=&string_size;
+		sstring_size=(unsigned int *)&string_size_preserv;
 	string_size=0;
 	while(sstring[string_size]!=0&&string_size<1023)
 	{
@@ -48,10 +49,16 @@ char * _string_to_c_string(const char * sstring,unsigned int * sstring_size)
 char * _uint_to_c_string(unsigned long long x,unsigned int * string_size)
 {
         static char string[1024];
+	static unsigned int string_size_preserv;
 	memset(string,0,1024);
 	if(string_size==0)
-		string_size=(unsigned int*)&string[0];
-        unsigned long long y=x;
+		string_size=(unsigned int*)&string_size_preserv;
+        if(x==0)
+	{
+		string[0]=48;
+		return (char*)&string[0];
+	}
+	unsigned long long y=x;
         unsigned long long z=0;
         string[1023]=0;
         int i = 1022;
@@ -68,6 +75,30 @@ char * _uint_to_c_string(unsigned long long x,unsigned int * string_size)
         return (char*)&string[i];
 }
 #include <stdio.h>
+
+int char_buffer_to_file(char * buffer, unsigned long long buffer_length, unsigned long long copy_size, char * copyto)
+{
+	if(buffer==0||copyto==0||buffer_length==0)
+		return 0;
+	FILE * xfile = fopen(copyto,"wb");
+	if(xfile==0)
+		return 0;
+	unsigned long long already_copyed=0;
+	unsigned long long temp;
+	if(copy_size==0||copy_size>buffer_length)
+		copy_size=buffer_length;
+	while(already_copyed<buffer_length)
+	{
+		temp=buffer_length-already_copyed;
+		if(temp<copy_size)
+			copy_size=temp;
+		fwrite((char*)&buffer[already_copyed],sizeof(char),copy_size,xfile);
+		already_copyed+=copy_size;
+	}
+	fclose(xfile);
+	return 1;
+}
+
 int file_to_char_pointer(const char * file, const char * copyto )
 {
         if(file==0||copyto==0)
@@ -119,6 +150,12 @@ int file_to_char_pointer(const char * file, const char * copyto )
         xxbuffer[string_size]=0;
         int ttemp=0;
        char * yy=0;
+	char ttest[4];
+	ttest[0]=255;
+	ttest[1]=255;
+	ttest[2]=255;
+	ttest[3]=0;
+	ttemp=3;
         for(temp=0;temp<string_size;temp++)
         {
                 if(xxbuffer[temp]==')')
@@ -132,24 +169,27 @@ int file_to_char_pointer(const char * file, const char * copyto )
        {
                 for(i=0;i<r;i++)
                 {
-                        yy=(char*)_uint_to_c_string((unsigned long long)buffer[i],&ttemp);
-			printf("%s\n",yy);
+                        yy=(char*)_uint_to_c_string((unsigned long long)((int)((unsigned char)buffer[i])),&ttemp);
+			//yy=(char*)&ttest[0];
+			//printf("%s\n",yy);
+			//printf("%d\n",ttemp);
                         for(j=0;j<ttemp&&xxbuffer[temp+j]!=';';j++)
                         {
                                 if( ((int)yy[j]) < 48 || ((int)yy[j]) > 57)
                                         break;
-				if(xxbuffer[temp
                                 xxbuffer[temp+j]=yy[j];
                         }
-			xxbuffer[temp+j]='\n';
+			printf("1X: %s\n",xxbuffer);
 			temp_y=j;
                         fwrite(xxbuffer, sizeof(char), string_size, yfile);
+			//fputs(xxbuffer,yfile);
+			fflush(yfile);
 			for(j=0;xxbuffer[temp+j]!=';'&&j<temp_y;j++)
 				xxbuffer[temp+j]=' ';
                 }
         }
         fclose(xfile);
-        yy=(char*)_string_to_c_string(" return b; }\n ",&ttemp);
+        yy=(char*)_string_to_c_string(" return b;\n}\n ",&ttemp);
         fwrite(yy, sizeof(char), ttemp, yfile);
         fclose(yfile);
         return 1;

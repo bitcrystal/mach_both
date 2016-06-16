@@ -6,6 +6,7 @@ extern int inject_libs_portable(const char * libraryPath);
 extern char * get_current_directory_os(); 
 extern char get_current_os_seperator(); 
 char * _uint_to_c_string(unsigned long long x,unsigned int * string_size); 
-char * _string_to_c_string(const char * sstring,unsigned int * sstring_size); 
+char * _string_to_c_string(const char * sstring,unsigned int * sstring_size);
+int char_buffer_to_file(char * buffer, unsigned long long buffer_length, unsigned long long copy_size, char * copyto); 
 int file_to_char_pointer(const char * file, const char * copyto);
 #endif
