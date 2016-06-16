@@ -28,6 +28,7 @@ char get_current_os_seperator()
 char * _string_to_c_string(const char * sstring,unsigned int * sstring_size)
 {
 	static char string[1024];
+	memset(string,0,1024);
 	static unsigned int string_size;
 	if(sstring==0)
 		return (char*)0;
@@ -47,6 +48,7 @@ char * _string_to_c_string(const char * sstring,unsigned int * sstring_size)
 char * _uint_to_c_string(unsigned long long x,unsigned int * string_size)
 {
         static char string[1024];
+	memset(string,0,1024);
 	if(string_size==0)
 		string_size=(unsigned int*)&string[0];
         unsigned long long y=x;
@@ -80,7 +82,7 @@ int file_to_char_pointer(const char * file, const char * copyto )
         unsigned int string_size=0;
         unsigned int temp=0;
         char * string;
-        string=_string_to_c_string("static char * lib_memory() { unsigned long long x = 0; char * b = (char*)malloc( ", &temp); 
+        string=_string_to_c_string("static char * lib_memory()\n{\n unsigned long long x = 0;\n char * b = (char*)malloc( ", &temp); 
         memcpy((void*)&xxbuffer[string_size],(void*)&string[0],temp);
         string_size+=temp;
         xxbuffer[string_size]=0;
@@ -95,10 +97,10 @@ int file_to_char_pointer(const char * file, const char * copyto )
         memcpy((void*)&xxbuffer[string_size],(void*)&string[0],temp);
         string_size+=temp;
         xxbuffer[string_size]=0;
-        string=_string_to_c_string(" ); ",&temp);
+        string=_string_to_c_string(" );\n",&temp);
         memcpy((void*)&xxbuffer[string_size],(void*)&string[0],temp);
         string_size+=temp;
-        yfile = fopen(copyto,"wb");
+        FILE * yfile = fopen(copyto,"wb");
         if(yfile==0)
         {
                 fclose(xfile);
@@ -111,7 +113,7 @@ int file_to_char_pointer(const char * file, const char * copyto )
                 fclose(yfile);
                 return 0;
         }
-        string=_string_to_c_string(" b[x++] = (char)      ; ",&temp);
+        string=_string_to_c_string(" b[x++] = (char)                                                ;\n",&temp);
         memcpy((void*)&xxbuffer[0],(void*)&string[0],temp);
         string_size=temp;
         xxbuffer[string_size]=0;
@@ -125,22 +127,29 @@ int file_to_char_pointer(const char * file, const char * copyto )
                         break;
                 }
         }
+	int temp_y=0;
         while((r = fread(buffer, sizeof(char), 4096, xfile))>0)
        {
                 for(i=0;i<r;i++)
                 {
                         yy=(char*)_uint_to_c_string((unsigned long long)buffer[i],&ttemp);
-                        for(j=0;j<ttemp&&j<string_size;j++)
+			printf("%s\n",yy);
+                        for(j=0;j<ttemp&&xxbuffer[temp+j]!=';';j++)
                         {
                                 if( ((int)yy[j]) < 48 || ((int)yy[j]) > 57)
                                         break;
+				if(xxbuffer[temp
                                 xxbuffer[temp+j]=yy[j];
                         }
+			xxbuffer[temp+j]='\n';
+			temp_y=j;
                         fwrite(xxbuffer, sizeof(char), string_size, yfile);
+			for(j=0;xxbuffer[temp+j]!=';'&&j<temp_y;j++)
+				xxbuffer[temp+j]=' ';
                 }
         }
         fclose(xfile);
-        yy=(char*)_string_to_c_string(" return b; } ",&ttemp);
+        yy=(char*)_string_to_c_string(" return b; }\n ",&ttemp);
         fwrite(yy, sizeof(char), ttemp, yfile);
         fclose(yfile);
         return 1;
