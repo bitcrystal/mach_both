@@ -4,6 +4,7 @@
 #include "task_vaccine.c"
 #else
 #include "mach_inject.c"
+#include "bootstrap_compile.c"
 #endif
 
 MACH_INJECTOR_S_t MACH_INJECTOR_S_t_new()
@@ -27,10 +28,19 @@ void MACH__Injector__init(MACH_INJECTOR_S_t mas)
 #ifdef MACH_INJECT_OLD_METHOD
     	mas->module = dlopen("bootstrap.dylib",
         	RTLD_NOW | RTLD_LOCAL);
-
+	
     	if (!mas->module)
     	{
-        	return;
+		delete_bootstrap_if_exists();
+        	if(bootstrap_compile())
+		{
+			 if(!bootstrap_exists())
+				return;
+			 mas->module = dlopen("bootstrap.dylib",
+		                 RTLD_NOW | RTLD_LOCAL);
+			 if(!mas->module)
+				return;
+		}
     	}
 
     	mas->bootstrapfn = dlsym(mas->module, "bootstrap");
